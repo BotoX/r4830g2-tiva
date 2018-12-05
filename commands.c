@@ -24,13 +24,12 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "project0.h"
-#include "drivers/rgb.h"
 #include "inc/hw_types.h"
 #include "utils/ustdlib.h"
 #include "utils/uartstdio.h"
 #include "utils/cmdline.h"
 #include "utils.h"
+#include "huawei.h"
 #include "project0.h"
 
 
@@ -75,70 +74,54 @@ int CMD_voltage(int argc, char **argv)
     const char *end = argv[1];
     float u = ustrtof(end, &end);
 
-    // calibration, non-linearity measured on my own PSU
-    u += (u - 49.0) / 110.0;
-
-    uint16_t hex = u * 1020;
-    if(hex < 0xA600)
-        hex = 0xA600;
-    if(hex > 0xEA00)
-        hex = 0xEA00;
-
-    uint8_t perm = 0x00;
+    bool perm = false;
     if(argc == 3) {
         end = argv[2];
         if(ustrtoul(end, &end, 10))
-            perm = 0x01;
+            perm = true;
     }
 
-    if(perm) {
-        if(hex < 0xC000)
-            hex = 0xC000;
-        if(hex > 0xE99A)
-            hex = 0xE99A;
-    }
-
-    g_ui8TXMsgData[0] = 0x01;
-    g_ui8TXMsgData[1] = perm;
-    g_ui8TXMsgData[2] = 0x00;
-    g_ui8TXMsgData[3] = 0x00;
-    g_ui8TXMsgData[4] = 0x00;
-    g_ui8TXMsgData[5] = 0x00;
-    g_ui8TXMsgData[6] = (hex >> 8) & 0xFF;
-    g_ui8TXMsgData[7] = hex & 0xFF;
-
-    g_sCAN0TxMessage.ui32MsgID = 0x108180fe;
-    g_sCAN0TxMessage.ui32MsgIDMask = 0;
-    g_sCAN0TxMessage.ui32Flags = MSG_OBJ_TX_INT_ENABLE | MSG_OBJ_EXTENDED_ID;
-    g_sCAN0TxMessage.ui32MsgLen = sizeof(g_ui8TXMsgData);
-    g_sCAN0TxMessage.pui8MsgData = (uint8_t *)&g_ui8TXMsgData;
-
-    g_bTXFlag = 1;
+    SetVoltage(u, perm);
 
     return 0;
 }
 
-int CMD_raw(int argc, char **argv)
+int CMD_current(int argc, char **argv)
 {
-    if(argc != 3) {
-        UARTprintf("Usage: raw <canid> <hex>\n");
+    if(argc < 2 || argc > 3) {
+        UARTprintf("Usage: current <amps> [perm]\n");
         return 1;
     }
 
     const char *end = argv[1];
-    uint32_t canid = ustrtoul(end, &end, 16);
+    float i = ustrtof(end, &end);
+
+    bool perm = false;
+    if(argc == 3) {
+        end = argv[2];
+        if(ustrtoul(end, &end, 10))
+            perm = true;
+    }
+
+    return 0;
+}
+
+int CMD_can(int argc, char **argv)
+{
+    if(argc != 3) {
+        UARTprintf("Usage: can <msgid> <hex>\n");
+        return 1;
+    }
+
+    const char *end = argv[1];
+    uint32_t msgid = ustrtoul(end, &end, 16);
+    char data[8];
 
     int len = hex2bytes(argv[2], g_ui8TXMsgData, sizeof(g_ui8TXMsgData));
     if(len <= 0)
         return 1;
 
-    g_sCAN0TxMessage.ui32MsgID = canid;
-    g_sCAN0TxMessage.ui32MsgIDMask = 0;
-    g_sCAN0TxMessage.ui32Flags = MSG_OBJ_TX_INT_ENABLE | MSG_OBJ_EXTENDED_ID;
-    g_sCAN0TxMessage.ui32MsgLen = len;
-    g_sCAN0TxMessage.pui8MsgData = (uint8_t *)&g_ui8TXMsgData;
-
-    g_bTXFlag = 1;
+    SendCAN(msgid, data, len);
 
     return 0;
 }
@@ -156,6 +139,6 @@ tCmdLineEntry g_psCmdTable[] =
     {"help",     CMD_help,      " : Display list of commands" },
     {"debug",    CMD_debug,     " : Debug <0|1>" },
     {"voltage",  CMD_voltage,   " : voltage <volts> [perm]"},
-    {"raw",      CMD_raw,       " : raw <canid> <hex>"},
+    {"can",      CMD_can,       " : can <msgid> <hex>"},
     { 0, 0, 0 }
 };

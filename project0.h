@@ -7,5 +7,6 @@ extern tCANMsgObject g_sCAN0TxMessage;
 extern uint8_t g_ui8TXMsgData[8];
 extern uint8_t g_ui8RXMsgData[32];
 
-extern bool g_bTXFlag;
 extern bool g_Debug;
+
+void CANTransmit();

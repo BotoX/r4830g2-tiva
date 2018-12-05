@@ -72,6 +72,7 @@ ${COMPILER}:
 #
 ${COMPILER}/project0.axf: ${COMPILER}/utils.o
 ${COMPILER}/project0.axf: ${COMPILER}/cmdline.o
+${COMPILER}/project0.axf: ${COMPILER}/huawei.o
 ${COMPILER}/project0.axf: ${COMPILER}/project0.o
 ${COMPILER}/project0.axf: ${COMPILER}/commands.o
 ${COMPILER}/project0.axf: ${COMPILER}/startup_${COMPILER}.o

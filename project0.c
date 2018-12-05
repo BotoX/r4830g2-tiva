@@ -13,6 +13,7 @@
 #include "driverlib/uart.h"
 #include "utils/uartstdio.h"
 #include "utils/cmdline.h"
+#include "huawei.h"
 #include "project0.h"
 
 #define LED_RED         GPIO_PIN_1      // PF1
@@ -255,6 +256,11 @@ ConfigureUART(void)
     UARTStdioConfig(0, 115200, ROM_SysCtlClockGet());
 }
 
+void CANTransmit()
+{
+    ROM_CANMessageSet(CAN0_BASE, TXOBJECT, &g_sCAN0TxMessage, MSG_OBJ_TYPE_TX);
+}
+
 int main(void)
 {
     ROM_FPUEnable();
@@ -323,6 +329,8 @@ int main(void)
                 }
                 UARTprintf("\n");
             }
+
+            OnRecvCAN(g_sCAN0RxMessage.ui32MsgID, g_ui8RXMsgData, g_sCAN0RxMessage.ui32MsgLen);
         }
         else
         {
@@ -351,19 +359,6 @@ int main(void)
                 else
                     UARTprintf("fail: %d\n", CmdStatus);
             }
-
-            //
-            // Send the CAN message using object number TXOBJECT (not the
-            // same thing as CAN ID, which is also TXOBJECT in this
-            // example).  This function will cause the message to be
-            // transmitted right away.
-            //
-            if(g_bTXFlag)
-            {
-                ROM_CANMessageSet(CAN0_BASE, TXOBJECT, &g_sCAN0TxMessage, MSG_OBJ_TYPE_TX);
-                g_bTXFlag = 0;
-            }
         }
-        ROM_SysCtlDelay(MS);
     }
 }
