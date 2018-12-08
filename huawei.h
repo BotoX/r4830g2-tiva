@@ -10,4 +10,7 @@ void SetReg(uint8_t reg, uint16_t val);
 void SetVoltageHex(uint16_t hex, bool perm);
 void SetVoltage(float u, bool perm);
 
+void SetCurrentHex(uint16_t hex, bool perm);
+void SetCurrent(float i, bool perm);
+
 #endif

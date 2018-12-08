@@ -103,6 +103,8 @@ int CMD_current(int argc, char **argv)
             perm = true;
     }
 
+    SetCurrent(i, perm);
+
     return 0;
 }
 
@@ -115,9 +117,9 @@ int CMD_can(int argc, char **argv)
 
     const char *end = argv[1];
     uint32_t msgid = ustrtoul(end, &end, 16);
-    char data[8];
+    uint8_t data[8];
 
-    int len = hex2bytes(argv[2], g_ui8TXMsgData, sizeof(g_ui8TXMsgData));
+    int len = hex2bytes(argv[2], data, sizeof(data));
     if(len <= 0)
         return 1;
 
@@ -139,6 +141,7 @@ tCmdLineEntry g_psCmdTable[] =
     {"help",     CMD_help,      " : Display list of commands" },
     {"debug",    CMD_debug,     " : Debug <0|1>" },
     {"voltage",  CMD_voltage,   " : voltage <volts> [perm]"},
+    {"current",  CMD_current,   " : current <amps> [perm]"},
     {"can",      CMD_can,       " : can <msgid> <hex>"},
     { 0, 0, 0 }
 };

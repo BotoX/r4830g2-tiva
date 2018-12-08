@@ -79,3 +79,20 @@ void SetVoltage(float u, bool perm)
     uint16_t hex = u * 1020;
     SetVoltageHex(hex, perm);
 }
+
+void SetCurrentHex(uint16_t hex, bool perm)
+{
+    const uint8_t reg = perm ? 0x04 : 0x03;
+
+    if(hex > 0x0420)
+        hex = 0x0420;
+
+    SetReg(reg, hex);
+}
+
+void SetCurrent(float i, bool perm)
+{
+    uint16_t hex = i * 30;
+
+    SetCurrentHex(hex, perm);
+}
